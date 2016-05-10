@@ -3,8 +3,9 @@ package curso.mpgo.com.cursoandroid;
 /**
  * Created by ricardoogliari on 5/10/16.
  */
-public class Posicoes {
+public class Ponto {
 
-    public java.util.List<Posicao> posicoes;
+    public double latitude;
+    public double longitude;
 
 }

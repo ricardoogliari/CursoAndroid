@@ -2,7 +2,6 @@ package curso.mpgo.com.cursoandroid;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.Query;
 
 /**
  * Created by ricardoogliari on 5/10/16.
@@ -10,12 +9,12 @@ import retrofit2.http.Query;
 public interface MyInterfaceRetrofit {
 
     //ANNOTATIONS
-    @GET("listaviagens")
-    Call<Posicoes> searchPositions();
+    @GET("v2/57322cda0f0000550aead71c")
+    Call<Itens> searchPositions();
 
    /* http://1-dot-temcarona-1201.appspot.com/listaviagens?pontocentral=-23.5454,-46.777&raio=5000
     @GET("listaviagens")
-    Call<Posicoes> searchPositions(
+    Call<Itens> searchPositions(
             @Query("pontocentral") String position,
             @Query("raio") int raio);
 */

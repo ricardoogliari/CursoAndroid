@@ -3,6 +3,7 @@ package curso.mpgo.com.cursoandroid;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
@@ -20,10 +21,14 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.maps.android.clustering.ClusterManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -56,6 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setMyLocationEnabled(true);
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -70,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLocationChanged(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.clear();
+        //mMap.clear();
         mMap.addMarker(new MarkerOptions().position(latLng).title("Estou aqui"));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
     }
@@ -89,29 +95,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
-        Call<Posicoes> call = ((CoreApplication) getApplication()).service.searchPositions();
-        call.enqueue(new Callback<Posicoes>() {
+        Call<Itens> call = ((CoreApplication) getApplication()).service.searchPositions();
+        call.enqueue(new Callback<Itens>() {
             @Override
-            public void onResponse(Call<Posicoes> call, Response<Posicoes> response) {
+            public void onResponse(Call<Itens> call, Response<Itens> response) {
                 mClusterManager = new ClusterManager<MyItem>(MapsActivity.this, mMap);
                 for (Posicao posicao : response.body().posicoes) {
                     MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
                     mClusterManager.addItem(offsetItem);
+                }
 
+                for (Circulo circulo : response.body().circulos) {
+                    CircleOptions circleOpt = new CircleOptions()
+                            .center(new LatLng(circulo.latitude, circulo.longitude))
+                            .fillColor(Color.LTGRAY)
+                            .strokeColor(Color.BLACK)
+                            .radius(circulo.raio);
+
+                    mMap.addCircle(circleOpt);
+                }
+
+                for (Poligono poligono : response.body().poligonos) {
+                    List<LatLng> pontos = new ArrayList<LatLng>();
+                    for (Ponto ponto : poligono.pontos){
+                        pontos.add(new LatLng(ponto.latitude, ponto.longitude));
+                    }
+
+                    PolygonOptions polOpt = new PolygonOptions()
+                        .addAll(pontos)
+                            .strokeColor(Color.BLUE)
+                            .fillColor(Color.LTGRAY);
+                    mMap.addPolygon(polOpt);
                 }
                 mMap.setOnCameraChangeListener(mClusterManager);
                 mMap.setOnMarkerClickListener(mClusterManager);
             }
 
             @Override
-            public void onFailure(Call<Posicoes> call, Throwable t) {
+            public void onFailure(Call<Itens> call, Throwable t) {
                 Log.e("CURSO", "Pepino: " + t.getLocalizedMessage());
             }
         });
-
-
-        mMap.setOnCameraChangeListener(mClusterManager);
-        mMap.setOnMarkerClickListener(mClusterManager);
 
     }
 

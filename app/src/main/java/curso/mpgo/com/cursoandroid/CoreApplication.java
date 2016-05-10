@@ -33,7 +33,7 @@ public class CoreApplication extends Application {
         Gson gson = new GsonBuilder().create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://1-dot-temcarona-1201.appspot.com/")
+                .baseUrl("http://www.mocky.io/")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .client(client)
                 .build();
