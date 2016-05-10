@@ -25,6 +25,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterManager;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -34,8 +38,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private LocationRequest mLocationRequest;
 
-    private LatLng[] posicoes = new LatLng[10];
-
     private ClusterManager mClusterManager;
 
     @Override
@@ -44,17 +46,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        posicoes[0] = new LatLng(-29.983067, -51.192679);
-        posicoes[1] = new LatLng(-29.976004, -51.170492);
-        posicoes[2] = new LatLng(-29.963215, -51.191134);
-        posicoes[3] = new LatLng(-29.961245, -51.161308);
-        posicoes[4] = new LatLng(-29.992753, -51.138726);
-        posicoes[5] = new LatLng(-30.001301, -51.151644);
-        posicoes[6] = new LatLng(-30.016612, -51.166106);
-        posicoes[7] = new LatLng(-30.025678, -51.177865);
-        posicoes[8] = new LatLng(-30.040205, -51.183959);
-        posicoes[9] = new LatLng(-30.063090, -51.156959);
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
@@ -90,7 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
-    public void getLastLocation(){
+    public void getLastLocation() {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         LatLng eu = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
         mMap.addMarker(new MarkerOptions().position(eu).title("Estou aqui"));
@@ -98,11 +89,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
-        mClusterManager = new ClusterManager<MyItem>(this, mMap);
-        for (LatLng posicao : posicoes){
-            MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
-            mClusterManager.addItem(offsetItem);
-        }
+        Call<Posicoes> call = ((CoreApplication) getApplication()).service.searchPositions();
+        call.enqueue(new Callback<Posicoes>() {
+            @Override
+            public void onResponse(Call<Posicoes> call, Response<Posicoes> response) {
+                mClusterManager = new ClusterManager<MyItem>(MapsActivity.this, mMap);
+                for (Posicao posicao : response.body().posicoes) {
+                    MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
+                    mClusterManager.addItem(offsetItem);
+
+                }
+                mMap.setOnCameraChangeListener(mClusterManager);
+                mMap.setOnMarkerClickListener(mClusterManager);
+            }
+
+            @Override
+            public void onFailure(Call<Posicoes> call, Throwable t) {
+                Log.e("CURSO", "Pepino: " + t.getLocalizedMessage());
+            }
+        });
+
 
         mMap.setOnCameraChangeListener(mClusterManager);
         mMap.setOnMarkerClickListener(mClusterManager);
@@ -136,9 +142,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onConnectionSuspended(int i) {}
+    public void onConnectionSuspended(int i) {
+    }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {}
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
 
 }
