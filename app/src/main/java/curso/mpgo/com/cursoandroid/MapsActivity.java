@@ -23,6 +23,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.ClusterManager;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -33,12 +34,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private LocationRequest mLocationRequest;
 
+    private LatLng[] posicoes = new LatLng[10];
+
+    private ClusterManager mClusterManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        posicoes[0] = new LatLng(-29.983067, -51.192679);
+        posicoes[1] = new LatLng(-29.976004, -51.170492);
+        posicoes[2] = new LatLng(-29.963215, -51.191134);
+        posicoes[3] = new LatLng(-29.961245, -51.161308);
+        posicoes[4] = new LatLng(-29.992753, -51.138726);
+        posicoes[5] = new LatLng(-30.001301, -51.151644);
+        posicoes[6] = new LatLng(-30.016612, -51.166106);
+        posicoes[7] = new LatLng(-30.025678, -51.177865);
+        posicoes[8] = new LatLng(-30.040205, -51.183959);
+        posicoes[9] = new LatLng(-30.063090, -51.156959);
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
@@ -68,6 +84,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
     public void getLastLocation(){
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         LatLng eu = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
@@ -75,6 +97,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(eu, 16));
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
+        mClusterManager = new ClusterManager<MyItem>(this, mMap);
+        for (LatLng posicao : posicoes){
+            MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
+            mClusterManager.addItem(offsetItem);
+        }
+
+        mMap.setOnCameraChangeListener(mClusterManager);
+        mMap.setOnMarkerClickListener(mClusterManager);
+
     }
 
     @Override
