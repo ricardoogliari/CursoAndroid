@@ -1,9 +1,12 @@
 package curso.mpgo.com.cursoandroid.database;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import curso.mpgo.com.cursoandroid.Posicao;
@@ -40,18 +43,79 @@ public class PosicaoDbHelper extends SQLiteOpenHelper {
     }
 
     public void create(Posicao posicao){
+        SQLiteDatabase db = getWritableDatabase();
 
+        ContentValues cv = new ContentValues();
+        cv.put(PosicaoContract.COLUMN_NAME_NAME, posicao.name);
+        cv.put(PosicaoContract.COLUMN_NAME_LAT, posicao.latitude);
+        cv.put(PosicaoContract.COLUMN_NAME_LNG, posicao.longitude);
+
+        db.insert(PosicaoContract.TABLE_NAME, null, cv);
+
+        db.close();
     }
 
     public List<Posicao> read(){
+        SQLiteDatabase db = getReadableDatabase();
+        List<Posicao> posicoes = new ArrayList<>();
 
+        Cursor cursor = db.query(
+                PosicaoContract.TABLE_NAME,
+                null,//campos (null retorna todos os campos)
+                null,//where
+                null,//argumentos do where
+                null,//group by
+                null,//having
+                PosicaoContract.COLUMN_NAME_NAME//order by
+        );
+
+        while (cursor.moveToNext()){
+            Posicao posicao = new Posicao();
+            posicao.id = cursor.getInt(cursor.getColumnIndex(PosicaoContract.COLUMN_NAME_ENTRY_ID));
+            posicao.name = cursor.getString(cursor.getColumnIndex(PosicaoContract.COLUMN_NAME_NAME));
+            posicao.latitude = cursor.getDouble(cursor.getColumnIndex(PosicaoContract.COLUMN_NAME_LAT));
+            posicao.longitude = cursor.getDouble(cursor.getColumnIndex(PosicaoContract.COLUMN_NAME_LNG));
+            posicoes.add(posicao);
+        }
+
+        db.close();
+        return posicoes;
     }
 
     public void update(Posicao posicao){
+        SQLiteDatabase db = getWritableDatabase();
 
+        ContentValues cv = new ContentValues();
+        cv.put(PosicaoContract.COLUMN_NAME_NAME, posicao.name);
+        cv.put(PosicaoContract.COLUMN_NAME_LAT, posicao.latitude);
+        cv.put(PosicaoContract.COLUMN_NAME_LNG, posicao.longitude);
+
+        db.update(
+                PosicaoContract.TABLE_NAME,
+                cv,
+                PosicaoContract.COLUMN_NAME_ENTRY_ID + " = ?",
+                new String[]{"" + posicao.id});
+
+        db.close();
     }
 
     public void delete(Posicao posicao){
+        SQLiteDatabase db = getWritableDatabase();
 
+        db.delete(PosicaoContract.TABLE_NAME,
+                PosicaoContract.COLUMN_NAME_ENTRY_ID + " = ?",
+                new String[]{"" + posicao.id});
+
+        db.close();
+    }
+
+    public void clear(){
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.delete(PosicaoContract.TABLE_NAME,
+                null,
+                null);
+
+        db.close();
     }
 }

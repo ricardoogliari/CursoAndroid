@@ -5,6 +5,7 @@ package curso.mpgo.com.cursoandroid;
  */
 public class Posicao {
 
+    public int id;
     public String name;
     public double latitude;
     public double longitude;

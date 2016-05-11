@@ -30,6 +30,8 @@ import com.google.maps.android.clustering.ClusterManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import curso.mpgo.com.cursoandroid.database.PosicaoDbHelper;
+import curso.mpgo.com.cursoandroid.util.Conectividade;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -45,6 +47,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ClusterManager mClusterManager;
 
+    private PosicaoDbHelper dbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        //SQLITE
+        dbHelper = new PosicaoDbHelper(this);
     }
 
     @Override
@@ -96,47 +100,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
-        Call<Itens> call = ((CoreApplication) getApplication()).service.searchPositions();
-        call.enqueue(new Callback<Itens>() {
-            @Override
-            public void onResponse(Call<Itens> call, Response<Itens> response) {
-                mClusterManager = new ClusterManager<MyItem>(MapsActivity.this, mMap);
-                for (Posicao posicao : response.body().posicoes) {
-                    MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
-                    mClusterManager.addItem(offsetItem);
-                }
-
-                for (Circulo circulo : response.body().circulos) {
-                    CircleOptions circleOpt = new CircleOptions()
-                            .center(new LatLng(circulo.latitude, circulo.longitude))
-                            .fillColor(Color.LTGRAY)
-                            .strokeColor(Color.BLACK)
-                            .radius(circulo.raio);
-
-                    mMap.addCircle(circleOpt);
-                }
-
-                for (Poligono poligono : response.body().poligonos) {
-                    List<LatLng> pontos = new ArrayList<LatLng>();
-                    for (Ponto ponto : poligono.pontos){
-                        pontos.add(new LatLng(ponto.latitude, ponto.longitude));
+        if (Conectividade.haveConnectivity(this)) {
+            Call<Itens> call = ((CoreApplication) getApplication()).service.searchPositions();
+            call.enqueue(new Callback<Itens>() {
+                @Override
+                public void onResponse(Call<Itens> call, Response<Itens> response) {
+                    mClusterManager = new ClusterManager<MyItem>(MapsActivity.this, mMap);
+                    dbHelper.clear();
+                    for (Posicao posicao : response.body().posicoes) {
+                        dbHelper.create(posicao);
+                        MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
+                        mClusterManager.addItem(offsetItem);
                     }
 
-                    PolygonOptions polOpt = new PolygonOptions()
-                        .addAll(pontos)
-                            .strokeColor(Color.BLUE)
-                            .fillColor(Color.LTGRAY);
-                    mMap.addPolygon(polOpt);
+                    for (Circulo circulo : response.body().circulos) {
+                        CircleOptions circleOpt = new CircleOptions()
+                                .center(new LatLng(circulo.latitude, circulo.longitude))
+                                .fillColor(Color.LTGRAY)
+                                .strokeColor(Color.BLACK)
+                                .radius(circulo.raio);
+
+                        mMap.addCircle(circleOpt);
+                    }
+
+                    for (Poligono poligono : response.body().poligonos) {
+                        List<LatLng> pontos = new ArrayList<LatLng>();
+                        for (Ponto ponto : poligono.pontos) {
+                            pontos.add(new LatLng(ponto.latitude, ponto.longitude));
+                        }
+
+                        PolygonOptions polOpt = new PolygonOptions()
+                                .addAll(pontos)
+                                .strokeColor(Color.BLUE)
+                                .fillColor(Color.LTGRAY);
+                        mMap.addPolygon(polOpt);
+                    }
+                    mMap.setOnCameraChangeListener(mClusterManager);
+                    mMap.setOnMarkerClickListener(mClusterManager);
                 }
-                mMap.setOnCameraChangeListener(mClusterManager);
-                mMap.setOnMarkerClickListener(mClusterManager);
+
+                @Override
+                public void onFailure(Call<Itens> call, Throwable t) {
+                    Log.e("CURSO", "Pepino: " + t.getLocalizedMessage());
+                }
+            });
+        } else {
+            List<Posicao> posicoes = dbHelper.read();
+
+            for (Posicao posicao : posicoes) {
+                dbHelper.create(posicao);
+                MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
+                mClusterManager.addItem(offsetItem);
             }
 
-            @Override
-            public void onFailure(Call<Itens> call, Throwable t) {
-                Log.e("CURSO", "Pepino: " + t.getLocalizedMessage());
-            }
-        });
+            mMap.setOnCameraChangeListener(mClusterManager);
+            mMap.setOnMarkerClickListener(mClusterManager);
+        }
 
     }
 
