@@ -55,6 +55,21 @@ public class PosicaoDbHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void fullCreate(List<Posicao> posicoes){
+        SQLiteDatabase db = getWritableDatabase();
+
+        for (Posicao posicao : posicoes) {
+            ContentValues cv = new ContentValues();
+            cv.put(PosicaoContract.COLUMN_NAME_NAME, posicao.name);
+            cv.put(PosicaoContract.COLUMN_NAME_LAT, posicao.latitude);
+            cv.put(PosicaoContract.COLUMN_NAME_LNG, posicao.longitude);
+
+            db.insert(PosicaoContract.TABLE_NAME, null, cv);
+        }
+
+        db.close();
+    }
+
     public List<Posicao> read(){
         SQLiteDatabase db = getReadableDatabase();
         List<Posicao> posicoes = new ArrayList<>();

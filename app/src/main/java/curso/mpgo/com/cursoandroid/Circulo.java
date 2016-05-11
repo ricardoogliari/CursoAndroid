@@ -5,6 +5,7 @@ package curso.mpgo.com.cursoandroid;
  */
 public class Circulo {
 
+    public int id;
     public int raio;
     public double latitude;
     public double longitude;

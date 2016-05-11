@@ -107,11 +107,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onResponse(Call<Itens> call, Response<Itens> response) {
                     mClusterManager = new ClusterManager<MyItem>(MapsActivity.this, mMap);
                     dbHelper.clear();
-                    for (Posicao posicao : response.body().posicoes) {
-                        dbHelper.create(posicao);
-                        MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
-                        mClusterManager.addItem(offsetItem);
-                    }
 
                     for (Circulo circulo : response.body().circulos) {
                         CircleOptions circleOpt = new CircleOptions()
@@ -135,8 +130,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 .fillColor(Color.LTGRAY);
                         mMap.addPolygon(polOpt);
                     }
-                    mMap.setOnCameraChangeListener(mClusterManager);
-                    mMap.setOnMarkerClickListener(mClusterManager);
+                    dbHelper.fullCreate(response.body().posicoes);
+                    populaMapa(response.body().posicoes);
                 }
 
                 @Override
@@ -147,16 +142,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             List<Posicao> posicoes = dbHelper.read();
 
-            for (Posicao posicao : posicoes) {
-                dbHelper.create(posicao);
-                MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
-                mClusterManager.addItem(offsetItem);
-            }
-
-            mMap.setOnCameraChangeListener(mClusterManager);
-            mMap.setOnMarkerClickListener(mClusterManager);
+            populaMapa(posicoes);
         }
 
+    }
+
+    public void populaMapa(List<Posicao> posicoes){
+        for (Posicao posicao : posicoes) {
+            MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
+            mClusterManager.addItem(offsetItem);
+        }
+
+        mMap.setOnCameraChangeListener(mClusterManager);
+        mMap.setOnMarkerClickListener(mClusterManager);
     }
 
     @Override
