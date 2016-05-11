@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        if (accessToken == null || SharedManager.getBoolean(this, SharedManager.KEY_LOGIN_GOOGLE)) {
+        if (accessToken == null && !SharedManager.getBoolean(this, SharedManager.KEY_LOGIN_GOOGLE)) {
             LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
             loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
 

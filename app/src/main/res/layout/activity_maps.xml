@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -10,4 +10,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="curso.mpgo.com.cursoandroid.MapsActivity" />
-</RelativeLayout>
+
+    <ImageView
+        android:id="@+id/imgIconList"
+        android:visibility="gone"
+        android:onClick="mostraLista"
+        android:padding="10dp"
+        android:layout_gravity="right"
+        android:src="@mipmap/ic_format_list_bulleted_black_24dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</FrameLayout>

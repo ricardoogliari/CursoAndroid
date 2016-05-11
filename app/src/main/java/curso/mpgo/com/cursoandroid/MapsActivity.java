@@ -2,6 +2,7 @@ package curso.mpgo.com.cursoandroid;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -10,6 +11,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -51,10 +54,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PosicaoDbHelper dbPositionHelper;
     private CirculoDbHelper dbCircleHelper;
 
+    private List<Posicao> posicoes;
+
+    private ImageView imgIconList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        imgIconList = (ImageView) findViewById(R.id.imgIconList);
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -85,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onLocationChanged(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Estou aqui"));
+        //mMap.addMarker(new MarkerOptions().position(latLng).title("Estou aqui"));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
     }
 
@@ -128,6 +138,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     dbCircleHelper.fullCreate(response.body().circulos);
                     populaCirculos(response.body().circulos);
                     populaMapa(response.body().posicoes);
+
+                    imgIconList.setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -158,6 +170,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void populaMapa(List<Posicao> posicoes){
+        this.posicoes = posicoes;
         for (Posicao posicao : posicoes) {
             MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
             mClusterManager.addItem(offsetItem);
@@ -199,6 +212,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
+
+    public void mostraLista(View view){
+        ContainerPosicao containerPosicao = new ContainerPosicao();
+        containerPosicao.posicoes = posicoes;
+
+        Intent intent = new Intent(this, ListaLocais.class);
+        intent.putExtra("listaItens", containerPosicao);
+        startActivity(intent);
     }
 
 }
