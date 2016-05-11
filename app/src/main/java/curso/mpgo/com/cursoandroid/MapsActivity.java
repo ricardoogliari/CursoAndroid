@@ -30,6 +30,7 @@ import com.google.maps.android.clustering.ClusterManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import curso.mpgo.com.cursoandroid.database.CirculoDbHelper;
 import curso.mpgo.com.cursoandroid.database.PosicaoDbHelper;
 import curso.mpgo.com.cursoandroid.util.Conectividade;
 import retrofit2.Call;
@@ -47,7 +48,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ClusterManager mClusterManager;
 
-    private PosicaoDbHelper dbHelper;
+    private PosicaoDbHelper dbPositionHelper;
+    private CirculoDbHelper dbCircleHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +63,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        dbHelper = new PosicaoDbHelper(this);
+        dbPositionHelper = new PosicaoDbHelper(this);
+        dbCircleHelper = new CirculoDbHelper(this);
     }
 
     @Override
@@ -106,17 +109,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onResponse(Call<Itens> call, Response<Itens> response) {
                     mClusterManager = new ClusterManager<MyItem>(MapsActivity.this, mMap);
-                    dbHelper.clear();
-
-                    for (Circulo circulo : response.body().circulos) {
-                        CircleOptions circleOpt = new CircleOptions()
-                                .center(new LatLng(circulo.latitude, circulo.longitude))
-                                .fillColor(Color.LTGRAY)
-                                .strokeColor(Color.BLACK)
-                                .radius(circulo.raio);
-
-                        mMap.addCircle(circleOpt);
-                    }
+                    dbPositionHelper.clear();
+                    dbCircleHelper.clear();
 
                     for (Poligono poligono : response.body().poligonos) {
                         List<LatLng> pontos = new ArrayList<LatLng>();
@@ -130,7 +124,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 .fillColor(Color.LTGRAY);
                         mMap.addPolygon(polOpt);
                     }
-                    dbHelper.fullCreate(response.body().posicoes);
+                    dbPositionHelper.fullCreate(response.body().posicoes);
+                    dbCircleHelper.fullCreate(response.body().circulos);
+                    populaCirculos(response.body().circulos);
                     populaMapa(response.body().posicoes);
                 }
 
@@ -140,11 +136,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
         } else {
-            List<Posicao> posicoes = dbHelper.read();
+            List<Posicao> posicoes = dbPositionHelper.read();
+            List<Circulo> circulos = dbCircleHelper.read();
 
             populaMapa(posicoes);
+            populaCirculos(circulos);
         }
 
+    }
+
+    public void populaCirculos(List<Circulo> circulos){
+        for (Circulo circulo : circulos) {
+            CircleOptions circleOpt = new CircleOptions()
+                    .center(new LatLng(circulo.latitude, circulo.longitude))
+                    .fillColor(Color.LTGRAY)
+                    .strokeColor(Color.BLACK)
+                    .radius(circulo.raio);
+
+            mMap.addCircle(circleOpt);
+        }
     }
 
     public void populaMapa(List<Posicao> posicoes){
