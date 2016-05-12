@@ -58,6 +58,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ImageView imgIconList;
 
+    private ListaFragment listaFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +69,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        listaFragment =
+                (ListaFragment)getSupportFragmentManager().findFragmentById(R.id.listaFragment);
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
@@ -139,7 +144,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     populaCirculos(response.body().circulos);
                     populaMapa(response.body().posicoes);
 
-                    imgIconList.setVisibility(View.VISIBLE);
+                    if (imgIconList != null)
+                        imgIconList.setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -171,6 +177,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void populaMapa(List<Posicao> posicoes){
         this.posicoes = posicoes;
+
+        if (listaFragment != null && listaFragment.isInLayout()){
+            listaFragment.setPontos(posicoes);
+        }
+
         for (Posicao posicao : posicoes) {
             MyItem offsetItem = new MyItem(posicao.latitude, posicao.longitude);
             mClusterManager.addItem(offsetItem);
