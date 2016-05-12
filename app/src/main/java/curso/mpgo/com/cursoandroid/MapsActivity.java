@@ -2,7 +2,10 @@ package curso.mpgo.com.cursoandroid;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -13,6 +16,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -60,18 +64,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ListaFragment listaFragment;
 
+    private TextView txtOffline;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
         imgIconList = (ImageView) findViewById(R.id.imgIconList);
+        txtOffline = (TextView) findViewById(R.id.actMapsTxtOffline);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        listaFragment =
-                (ListaFragment)getSupportFragmentManager().findFragmentById(R.id.listaFragment);
+        listaFragment = (ListaFragment)getSupportFragmentManager().findFragmentById(R.id.listaFragment);
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
@@ -80,6 +86,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         dbPositionHelper = new PosicaoDbHelper(this);
         dbCircleHelper = new CirculoDbHelper(this);
+
+        IntentFilter filtro = new IntentFilter("mudar.estado.conectividade.tela");
+        registerReceiver(receiver, filtro);
     }
 
     @Override
@@ -108,7 +117,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onDestroy() {
         super.onDestroy();
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        unregisterReceiver(receiver);
     }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Conectividade.haveConnectivity(MapsActivity.this)){
+                txtOffline.setVisibility(View.GONE);
+
+                mMap.clear();
+                getLastLocation();
+            } else {
+                txtOffline.setVisibility(View.VISIBLE);
+            }
+        }
+    };
 
     public void getLastLocation() {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -154,6 +178,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
         } else {
+            txtOffline.setVisibility(View.VISIBLE);
+
             List<Posicao> posicoes = dbPositionHelper.read();
             List<Circulo> circulos = dbCircleHelper.read();
 
