@@ -1,44 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <ImageView
+            android:id="@+id/itemListaFundo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:alpha="0.5"
             android:scaleType="fitXY"
-            android:src="@drawable/back_lista"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:src="@drawable/back_lista" />
+
         <LinearLayout
-            android:padding="10dp"
-            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="10dp">
+
             <TextView
-                android:textSize="15sp"
-                android:text="Título"
-                android:textStyle="bold"
+                android:id="@+id/itemListaTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:text="Título"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
             <TextView
-                android:textSize="13sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Snippet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:textSize="13sp" />
+
             <TextView
-                android:textSize="13sp"
-                android:text="Observação"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="Observação"
+                android:textSize="13sp" />
         </LinearLayout>
     </FrameLayout>
+
     <TextView
-        android:padding="10dp"
-        android:text="Copyright - MPGO"
+        android:id="@+id/itemListaLocal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:padding="10dp"/>
 </LinearLayout>
