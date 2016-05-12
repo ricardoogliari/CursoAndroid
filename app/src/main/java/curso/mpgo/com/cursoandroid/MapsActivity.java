@@ -128,9 +128,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BroadcastReceiver receiverSMS = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.e("CURSO", "OnReceive SMS");
             String type = intent.getStringExtra("tipo");
             double lat = Double.parseDouble(intent.getStringExtra("latitude"));
             double lng = Double.parseDouble(intent.getStringExtra("longitude"));
+            Log.e("CURSO", "OnReceive SMS: " + type);
+            Log.e("CURSO", "OnReceive SMS: " + lat);
+            Log.e("CURSO", "OnReceive SMS: " + lng);
             switch (type){
                 case "1":
                     MarkerOptions markerOptions = new MarkerOptions()

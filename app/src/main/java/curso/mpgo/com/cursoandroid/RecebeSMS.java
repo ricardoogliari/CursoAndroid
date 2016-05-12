@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
+import android.util.Log;
 
 /**
  * Created by ricardoogliari on 5/12/16.
@@ -19,6 +20,8 @@ public class RecebeSMS extends BroadcastReceiver {
         //3 - lattiude
         //4 - longitude
 
+        Log.e("CURSO", "OnReceive BoradcastReceiver");
+
         final Bundle bundle = intent.getExtras();
 
         try {
@@ -31,8 +34,13 @@ public class RecebeSMS extends BroadcastReceiver {
                     SmsMessage currentMessage = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
                     String message = currentMessage.getDisplayMessageBody();
 
-                    if (message.startsWith("sd23r5t6")){
-                        String[] partes = message.split("|");
+                    Log.e("CURSO", "message: " + message);
+                    if (message.startsWith("a")){
+                        String[] partes = message.split("x");
+                        Log.e("CURSO", "message: " + partes[0]);
+                        Log.e("CURSO", "message: " + partes[1]);
+                        Log.e("CURSO", "message: " + partes[2]);
+                        Log.e("CURSO", "message: " + partes[3]);
 
                         Intent iSMS = new Intent("recebeu.sms.com.marcador");
                         iSMS.putExtra("tipo", partes[1]);
