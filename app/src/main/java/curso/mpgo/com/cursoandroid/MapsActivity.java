@@ -28,6 +28,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -88,7 +89,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         dbCircleHelper = new CirculoDbHelper(this);
 
         IntentFilter filtro = new IntentFilter("mudar.estado.conectividade.tela");
-        registerReceiver(receiver, filtro);
+        registerReceiver(receiverConnectivity, filtro);
+
+        IntentFilter filtroSMS = new IntentFilter("recebeu.sms.com.marcador");
+        registerReceiver(receiverSMS, filtroSMS);
     }
 
     @Override
@@ -110,17 +114,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         //mMap.clear();
         //mMap.addMarker(new MarkerOptions().position(latLng).title("Estou aqui"));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
+        //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        unregisterReceiver(receiver);
+        unregisterReceiver(receiverConnectivity);
+        unregisterReceiver(receiverSMS);
     }
 
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
+    private BroadcastReceiver receiverSMS = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String type = intent.getStringExtra("tipo");
+            double lat = Double.parseDouble(intent.getStringExtra("latitude"));
+            double lng = Double.parseDouble(intent.getStringExtra("longitude"));
+            switch (type){
+                case "1":
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(new LatLng(lat, lng))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    mMap.addMarker(markerOptions);
+                    //poi
+                    break;
+                case "2":
+                    //circle
+                    CircleOptions circleOptions = new CircleOptions()
+                            .center(new LatLng(lat, lng))
+                            .radius(2000)
+                            .fillColor(Color.LTGRAY)
+                            .strokeColor(Color.BLUE);
+                    mMap.addCircle(circleOptions);
+            }
+        }
+    };
+
+
+    private BroadcastReceiver receiverConnectivity = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (Conectividade.haveConnectivity(MapsActivity.this)){
